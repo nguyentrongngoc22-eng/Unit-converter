@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Đổi đơn vị kỹ thuật</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1F5F8B">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Đổi đơn vị">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E6EBE7; --paper:#F4F6F3; --ink:#1C2B3A; --ink2:#526170; --line:#CAD3CD;
+  --grid:rgba(31,95,139,.10); --grid2:rgba(31,95,139,.22);
+  --blue:#1F5F8B; --mark:#F2C230; --markink:#1C2B3A; --err:#B3261E;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#11171C; --paper:#19222A; --ink:#E3E8E4; --ink2:#95A3AE; --line:#2C3843;
+    --grid:rgba(120,180,220,.07); --grid2:rgba(120,180,220,.16);
+    --blue:#7DB8E0; --mark:#F2C230; --markink:#1C2B3A; --err:#F2887F;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11171C; --paper:#19222A; --ink:#E3E8E4; --ink2:#95A3AE; --line:#2C3843;
+  --grid:rgba(120,180,220,.07); --grid2:rgba(120,180,220,.16);
+  --blue:#7DB8E0; --mark:#F2C230; --markink:#1C2B3A; --err:#F2887F;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  font-size:16px; line-height:1.5; font-variant-numeric:tabular-nums;
+}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 48px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:16px}
+h1{font-size:1.6rem;line-height:1.15;margin:0;font-weight:700;letter-spacing:-.01em}
+h1 small{display:block;font-size:.85rem;font-weight:400;color:var(--ink2);letter-spacing:0;margin-top:4px}
+.opts{display:flex;gap:8px;align-items:center;font-size:.85rem;color:var(--ink2)}
+select,input,button{font:inherit;color:inherit}
+select,.btn,input[type=search]{
+  background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:8px 10px;min-height:40px;
+}
+select{max-width:100%}
+.btn{cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn:hover{border-color:var(--blue)}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+.search{position:relative;margin-bottom:12px}
+.search input{width:100%;padding-left:12px}
+.results{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:5;background:var(--paper);
+  border:1px solid var(--line);border-radius:4px;max-height:320px;overflow:auto;display:none;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.results.open{display:block}
+.results button{display:flex;justify-content:space-between;gap:12px;width:100%;text-align:left;background:none;border:0;
+  border-bottom:1px solid var(--line);padding:10px 12px;cursor:pointer}
+.results button:hover,.results button:focus-visible{background:var(--grid2)}
+.results .c{color:var(--ink2);font-size:.85rem;white-space:nowrap}
+.results .none{padding:10px 12px;color:var(--ink2)}
+
+.catrow{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.catrow select{flex:1;font-weight:600}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;scrollbar-width:thin}
+.chips button{flex:none;background:transparent;border:1px solid var(--line);border-radius:999px;padding:4px 12px;
+  font-size:.85rem;cursor:pointer;color:var(--ink2)}
+.chips button[aria-pressed="true"]{border-color:var(--blue);color:var(--blue);font-weight:600}
+
+/* The sheet: millimetre grid paper */
+.sheet{
+  background-color:var(--paper);
+  background-image:
+    linear-gradient(var(--grid2) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid2) 1px,transparent 1px),
+    linear-gradient(var(--grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:50px 50px,50px 50px,10px 10px,10px 10px;
+  border:1px solid var(--line);border-radius:4px;padding:18px 16px 16px;
+}
+.lab{font-size:.85rem;color:var(--ink2);margin:0 0 4px}
+.line{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}
+.num{
+  flex:1 1 220px;min-width:0;background:transparent;border:0;border-bottom:2px solid var(--ink);
+  font-size:clamp(2rem,7vw,2.8rem);font-weight:600;padding:2px 0;letter-spacing:-.01em;border-radius:0;
+}
+.num:focus-visible{outline:none;border-bottom-color:var(--blue)}
+.num.bad{border-bottom-color:var(--err)}
+.unitsel{flex:0 1 240px;align-self:flex-end}
+.pm{align-self:flex-end;min-width:44px}
+.msg{min-height:1.4em;font-size:.85rem;color:var(--err);margin:4px 0 10px}
+.eq{display:flex;align-items:center;gap:10px;margin:6px 0 10px;color:var(--ink2)}
+.eq::before,.eq::after{content:"";flex:1;border-top:1px dashed var(--line)}
+.out{
+  flex:1 1 220px;min-width:0;font-size:clamp(2rem,7vw,2.8rem);font-weight:700;line-height:1.2;
+  word-break:break-all;padding:2px 0;
+}
+.out span{background:linear-gradient(transparent 55%,var(--mark) 55%,var(--mark) 92%,transparent 92%);
+  -webkit-box-decoration-break:clone;box-decoration-break:clone;padding:0 2px}
+.acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.hint{font-size:.8rem;color:var(--ink2);margin-top:10px}
+
+h2{font-size:1.05rem;margin:28px 0 8px;font-weight:600}
+.list{background:var(--paper);border:1px solid var(--line);border-radius:4px}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:baseline;
+  padding:10px 12px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row.from{background:var(--grid2)}
+.row .v{font-weight:600;font-size:1.1rem;word-break:break-all;background:none;border:0;padding:0;text-align:left;cursor:copy}
+.row .u{background:none;border:0;padding:0;cursor:pointer;color:var(--blue);font-weight:600;text-align:right}
+.row .n{grid-column:1/-1;font-size:.8rem;color:var(--ink2);margin-top:-2px}
+
+.tbl-wrap{overflow-x:auto;background:var(--paper);border:1px solid var(--line);border-radius:4px}
+table{border-collapse:collapse;width:100%;min-width:420px}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{font-weight:600;font-size:.85rem;color:var(--ink2);text-align:right}
+th:first-child,td:first-child{text-align:left}
+tr.hit td{background:var(--mark);color:var(--markink)}
+
+.toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,20px);background:var(--ink);color:var(--paper);
+  padding:8px 14px;border-radius:4px;opacity:0;pointer-events:none;transition:opacity .15s,transform .15s;font-size:.9rem}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+footer{margin-top:28px;font-size:.8rem;color:var(--ink2);max-width:70ch}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Đổi đơn vị kỹ thuật<small>Cơ khí, nhiệt, HVAC, lưu chất, điện — SI và Anh/Mỹ</small></h1>
+    <div class="opts">
+      <label>Số chữ số
+        <select id="sig" aria-label="Số chữ số có nghĩa">
+          <option>4</option><option selected>6</option><option>8</option><option>10</option>
+        </select>
+      </label>
+      <select id="dec" aria-label="Dấu thập phân">
+        <option value=".">1.5</option>
+        <option value=",">1,5</option>
+      </select>
+    </div>
+  </header>
+
+  <div class="search">
+    <input id="q" type="search" placeholder="Tìm đơn vị: cfm, psi, RT, BTU/h, kgf…" autocomplete="off" aria-label="Tìm đơn vị">
+    <div id="res" class="results" role="listbox"></div>
+  </div>
+
+  <div class="catrow">
+    <select id="cat" aria-label="Đại lượng"></select>
+  </div>
+  <div id="chips" class="chips" aria-label="Đại lượng dùng gần đây"></div>
+
+  <div id="conv">
+    <section class="sheet">
+      <p class="lab"><label for="val">Giá trị (gõ được phép tính, vd 12*3.5)</label></p>
+      <div class="line">
+        <input id="val" class="num" type="text" inputmode="decimal" value="1" autocomplete="off" spellcheck="false">
+        <button id="pm" class="btn pm" type="button" aria-label="Đổi dấu">±</button>
+        <select id="from" class="unitsel" aria-label="Đơn vị gốc"></select>
+      </div>
+      <div id="msg" class="msg" aria-live="polite"></div>
+      <div class="eq">bằng</div>
+      <div class="line">
+        <div id="out" class="out" aria-live="polite"><span>—</span></div>
+        <select id="to" class="unitsel" aria-label="Đơn vị đích"></select>
+      </div>
+      <div class="acts">
+        <button id="swap" class="btn" type="button">⇅ Đảo chiều</button>
+        <button id="copy" class="btn" type="button">Sao chép kết quả</button>
+      </div>
+      <p id="note" class="hint"></p>
+    </section>
+
+    <h2 id="allh">Tất cả đơn vị</h2>
+    <div id="list" class="list"></div>
+    <p class="hint">Chạm vào con số để sao chép, chạm vào ký hiệu đơn vị để chọn làm đơn vị đích.</p>
+  </div>
+
+  <div id="tblview" hidden>
+    <section class="sheet">
+      <p class="lab"><label for="tq">Lọc theo DN, inch hoặc OD</label></p>
+      <input id="tq" class="num" type="text" autocomplete="off" placeholder="vd 50 hoặc 2">
+    </section>
+    <h2 id="tblh"></h2>
+    <div class="tbl-wrap"><table id="tbl"></table></div>
+    <p id="tblnote" class="hint"></p>
+  </div>
+
+  <footer>Hệ số theo NIST SP 811 / ISO 80000. BTU và cal dùng giá trị IT; gallon mặc định là US; inH₂O và ftH₂O theo nước 4 °C; RT là tấn lạnh Mỹ (12 000 BTU/h). Nhiệt độ và độ dốc được đổi theo công thức, không theo hệ số.</footer>
+</div>
+<div id="toast" class="toast" role="status"></div>
+
+<script>
+(function(){
+"use strict";
+var PI = Math.PI;
+function U(id, name, f, alias){ return {id:id, name:name, f:(typeof f==="number"?f:null), fn:(typeof f==="object"?f:null), alias:alias||""}; }
+
+var WG = 249.08891;       // inH2O (4°C), Pa
+var FTW = 2989.06692;     // ftH2O (4°C), Pa
+var LBF = 4.4482216152605;
+var BTU = 1055.05585262;
+var BTUH = BTU/3600;
+
+var CATS = [
+ // ---- Cơ bản
+ {k:"len", g:"Cơ bản", n:"Chiều dài", u:[
+  U("mm","milimét",1e-3), U("cm","xentimét",1e-2), U("m","mét",1), U("km","kilômét",1e3),
+  U("µm","micrômét",1e-6,"um micron"), U("mil","mil (1/1000 in)",2.54e-5,"thou"),
+  U("in","inch",0.0254,"inch \""), U("ft","foot",0.3048,"feet '"), U("yd","yard",0.9144),
+  U("mi","dặm Anh",1609.344,"mile"), U("nmi","hải lý",1852,"nautical")]},
+ {k:"area", g:"Cơ bản", n:"Diện tích", u:[
+  U("mm²","milimét vuông",1e-6,"mm2"), U("cm²","xentimét vuông",1e-4,"cm2"), U("m²","mét vuông",1,"m2"),
+  U("ha","héc-ta",1e4,"hecta"), U("km²","kilômét vuông",1e6,"km2"),
+  U("in²","inch vuông",6.4516e-4,"in2 sq in"), U("ft²","foot vuông",0.09290304,"ft2 sqft sf"),
+  U("yd²","yard vuông",0.83612736,"yd2"), U("acre","mẫu Anh",4046.8564224)]},
+ {k:"vol", g:"Cơ bản", n:"Thể tích", u:[
+  U("mL","mililít",1e-6,"ml cc"), U("L","lít",1e-3,"lit"), U("m³","mét khối",1,"m3 khoi"),
+  U("cm³","xentimét khối",1e-6,"cm3"), U("in³","inch khối",1.6387064e-5,"in3"),
+  U("ft³","foot khối",0.028316846592,"ft3 cf"), U("gal US","gallon Mỹ",3.785411784e-3,"gallon usg"),
+  U("gal UK","gallon Anh",4.54609e-3,"imperial"), U("bbl","thùng dầu",0.158987294928,"barrel")]},
+ {k:"mass", g:"Cơ bản", n:"Khối lượng", u:[
+  U("mg","miligam",1e-6), U("g","gam",1e-3), U("kg","kilôgam",1,"ky"), U("t","tấn",1e3,"ton tan"),
+  U("lb","pound",0.45359237,"lbs"), U("oz","ounce",0.028349523125),
+  U("gr","grain",6.479891e-5), U("sh tn","tấn Mỹ (short ton)",907.18474),
+  U("lg tn","tấn Anh (long ton)",1016.0469088)]},
+ {k:"temp", g:"Cơ bản", n:"Nhiệt độ", u:[
+  U("°C","độ C",{to:function(v){return v+273.15},from:function(b){return b-273.15}},"c celsius do c"),
+  U("°F","độ F",{to:function(v){return (v-32)*5/9+273.15},from:function(b){return (b-273.15)*9/5+32}},"f fahrenheit"),
+  U("K","kelvin",1,"kelvin"),
+  U("°R","độ Rankine",5/9,"rankine")]},
+ {k:"time", g:"Cơ bản", n:"Thời gian", u:[
+  U("ms","mili giây",1e-3), U("s","giây",1,"sec"), U("min","phút",60,"phut"), U("h","giờ",3600,"hr gio"),
+  U("ngày","ngày",86400,"day"), U("tuần","tuần",604800,"week"), U("năm","năm (365 ngày)",31536000,"year")]},
+ {k:"angle", g:"Cơ bản", n:"Góc", u:[
+  U("°","độ",PI/180,"deg do"), U("'","phút góc",PI/10800,"arcmin"), U("\"","giây góc",PI/648000,"arcsec"),
+  U("rad","radian",1), U("grad","gradian",PI/200,"gon"), U("vòng","vòng tròn",2*PI,"rev")]},
+ {k:"slope", g:"Cơ bản", n:"Độ dốc", note:"Đổi theo tan(góc). 1:n nghĩa là dốc 1 trên n chiều dài ngang.", u:[
+  U("%","phần trăm",0.01,"percent"), U("‰","phần nghìn",0.001,"permille"), U("mm/m","mm trên mét",0.001),
+  U("in/ft","inch trên foot",1/12),
+  U("°","độ",{to:function(v){return Math.tan(v*PI/180)},from:function(b){return Math.atan(b)*180/PI}},"deg"),
+  U("1:n","tỷ lệ 1 trên n",{to:function(v){return 1/v},from:function(b){return 1/b}},"ratio")]},
+ // ---- Cơ học
+ {k:"force", g:"Cơ học", n:"Lực", u:[
+  U("N","niutơn",1,"newton"), U("kN","kilô niutơn",1e3), U("MN","mega niutơn",1e6),
+  U("kgf","kilôgam lực",9.80665,"kp"), U("tf","tấn lực",9806.65,"tan luc"),
+  U("lbf","pound lực",LBF), U("kip","kip (1000 lbf)",LBF*1000), U("dyn","dyne",1e-5)]},
+ {k:"press", g:"Cơ học", n:"Áp suất, ứng suất", u:[
+  U("Pa","pascal",1), U("kPa","kilô pascal",1e3), U("MPa","mega pascal",1e6,"n/mm2"),
+  U("bar","bar",1e5), U("mbar","milibar",100,"hpa"),
+  U("psi","pound/inch²",6894.757293168,"lbf/in2"), U("ksi","kilô psi",6894757.293168),
+  U("atm","átmốtphe tiêu chuẩn",101325), U("kgf/cm²","átmốtphe kỹ thuật (at)",98066.5,"at kg/cm2"),
+  U("kgf/m²","kgf trên m²",9.80665,"kg/m2"),
+  U("mmH₂O","mm cột nước",9.80665,"mmh2o mmaq mmwg"), U("mH₂O","mét cột nước",9806.65,"mh2o mwc"),
+  U("inH₂O","inch cột nước (in.wg)",WG,"inwg in.wg inh2o wc"), U("ftH₂O","foot cột nước",FTW,"fth2o fthead"),
+  U("mmHg","mm thủy ngân",133.322387415,"torr"), U("inHg","inch thủy ngân",3386.389),
+  U("tf/m²","tấn lực/m²",9806.65,"t/m2")]},
+ {k:"torque", g:"Cơ học", n:"Mô-men xoắn", u:[
+  U("N·m","niutơn mét",1,"nm"), U("kN·m","kilô niutơn mét",1e3,"knm"),
+  U("kgf·m","kgf mét",9.80665,"kgm"), U("kgf·cm","kgf xentimét",0.0980665,"kgcm"),
+  U("lbf·ft","pound-foot",1.3558179483314,"ftlb ft-lb"), U("lbf·in","pound-inch",0.1129848290276,"inlb in-lb")]},
+ {k:"energy", g:"Cơ học", n:"Năng lượng, nhiệt lượng", u:[
+  U("J","jun",1,"joule"), U("kJ","kilô jun",1e3), U("MJ","mega jun",1e6), U("GJ","giga jun",1e9),
+  U("Wh","oát giờ",3600), U("kWh","kilô oát giờ",3.6e6,"so dien"), U("MWh","mega oát giờ",3.6e9),
+  U("cal","calo (IT)",4.1868), U("kcal","kilô calo",4186.8),
+  U("BTU","BTU (IT)",BTU), U("MMBTU","triệu BTU",BTU*1e6), U("therm","therm",BTU*1e5),
+  U("ft·lbf","foot-pound",1.3558179483314), U("TOE","tấn dầu quy đổi",4.1868e10), U("eV","electronvolt",1.602176634e-19)]},
+ {k:"power", g:"Cơ học", n:"Công suất, tải lạnh", u:[
+  U("W","oát",1,"watt"), U("kW","kilô oát",1e3), U("MW","mega oát",1e6),
+  U("BTU/h","BTU trên giờ",BTUH,"btuh btu/hr"), U("MBH","nghìn BTU/h",BTUH*1000,"kbtu"),
+  U("RT","tấn lạnh (US)",BTUH*12000,"tr ton refrigeration tan lanh"),
+  U("kcal/h","kcal trên giờ",1.163,"kcalh"),
+  U("HP","mã lực Anh (hp)",745.69987158227,"horsepower"), U("PS","mã lực mét (CV)",735.49875,"cv ml"),
+  U("ft·lbf/s","foot-pound/giây",1.3558179483314)]},
+ {k:"rot", g:"Cơ học", n:"Tốc độ quay, tần số", u:[
+  U("rpm","vòng/phút",1/60,"v/p r/min"), U("rps","vòng/giây",1), U("Hz","héc",1,"hertz"),
+  U("kHz","kilô héc",1e3), U("rad/s","radian/giây",1/(2*PI))]},
+ {k:"vel", g:"Cơ học", n:"Vận tốc", u:[
+  U("m/s","mét/giây",1,"ms"), U("km/h","kilômét/giờ",1/3.6,"kmh"), U("cm/s","xentimét/giây",0.01),
+  U("ft/s","foot/giây",0.3048,"fps"), U("fpm","foot/phút",0.00508,"ft/min"),
+  U("mph","dặm/giờ",0.44704), U("kn","hải lý/giờ (knot)",1852/3600,"knot")]},
+ {k:"dens", g:"Cơ học", n:"Khối lượng riêng", u:[
+  U("kg/m³","kg trên m³",1,"kg/m3"), U("g/cm³","g trên cm³",1000,"g/cc"), U("kg/L","kg trên lít",1000),
+  U("t/m³","tấn trên m³",1000,"t/m3"), U("lb/ft³","pound trên ft³",16.018463373960,"pcf"),
+  U("lb/in³","pound trên in³",27679.9047102), U("lb/gal","pound trên gallon US",119.826427316,"ppg")]},
+ // ---- Nhiệt & HVAC
+ {k:"dtemp", g:"Nhiệt & HVAC", n:"Chênh lệch nhiệt độ ΔT", note:"Dùng cho hiệu nhiệt độ (ΔT), không cộng/trừ 32 hay 273,15.", u:[
+  U("K","kelvin",1,"dk"), U("°C","độ C (chênh)",1,"dc delta"), U("°F","độ F (chênh)",5/9,"df delta"), U("°R","độ Rankine (chênh)",5/9)]},
+ {k:"qflow", g:"Nhiệt & HVAC", n:"Lưu lượng thể tích (gió, nước)", u:[
+  U("m³/h","mét khối/giờ",1/3600,"cmh m3h"), U("m³/min","mét khối/phút",1/60,"cmm"), U("m³/s","mét khối/giây",1,"cms"),
+  U("L/s","lít/giây",1e-3,"lps"), U("L/min","lít/phút",1e-3/60,"lpm"), U("L/h","lít/giờ",1e-3/3600,"lph"),
+  U("CFM","foot khối/phút",4.719474432e-4,"cfm ft3/min"), U("ft³/s","foot khối/giây",0.028316846592,"cfs"),
+  U("GPM","gallon Mỹ/phút",3.785411784e-3/60,"gpm usgpm"), U("GPM UK","gallon Anh/phút",4.54609e-3/60,"igpm"),
+  U("GPH","gallon Mỹ/giờ",3.785411784e-3/3600)]},
+ {k:"mflow", g:"Nhiệt & HVAC", n:"Lưu lượng khối lượng", u:[
+  U("kg/s","kg/giây",1), U("kg/min","kg/phút",1/60), U("kg/h","kg/giờ",1/3600,"kgh"),
+  U("t/h","tấn/giờ",1/3.6,"tph"), U("lb/s","pound/giây",0.45359237),
+  U("lb/min","pound/phút",0.45359237/60), U("lb/h","pound/giờ",0.45359237/3600,"pph lbh")]},
+ {k:"dp", g:"Nhiệt & HVAC", n:"Tổn thất áp theo chiều dài", u:[
+  U("Pa/m","pascal/mét",1), U("kPa/m","kPa/mét",1e3), U("mbar/m","milibar/mét",100),
+  U("mmH₂O/m","mm cột nước/mét",9.80665,"mmaq/m"),
+  U("in.wg/100ft","in.wg trên 100 ft",WG/30.48,"inwg/100ft"),
+  U("ftH₂O/100ft","ft cột nước trên 100 ft",FTW/30.48,"fthead/100ft"),
+  U("psi/100ft","psi trên 100 ft",6894.757293168/30.48)]},
+ {k:"hflux", g:"Nhiệt & HVAC", n:"Mật độ nhiệt, tải lạnh/diện tích", u:[
+  U("W/m²","oát/m²",1,"w/m2"), U("kW/m²","kilô oát/m²",1e3),
+  U("kcal/(h·m²)","kcal/h trên m²",1.163,"kcal/hm2"),
+  U("BTU/(h·ft²)","BTU/h trên ft²",3.154590745,"btu/hft2 btuh/sf"),
+  U("W/ft²","oát/ft²",1/0.09290304,"w/sf"), U("RT/1000ft²","tấn lạnh trên 1000 ft²",BTUH*12000/92.90304)]},
+ {k:"uval", g:"Nhiệt & HVAC", n:"Hệ số truyền nhiệt U, h", u:[
+  U("W/(m²·K)","oát/m²·K",1,"w/m2k"), U("kcal/(h·m²·°C)","kcal/h·m²·°C",1.163),
+  U("BTU/(h·ft²·°F)","BTU/h·ft²·°F",5.678263337,"btu/hft2f")]},
+ {k:"rval", g:"Nhiệt & HVAC", n:"Nhiệt trở R", u:[
+  U("m²·K/W","m²·K trên oát",1,"rsi m2k/w"), U("h·ft²·°F/BTU","R Mỹ (h·ft²·°F/BTU)",0.176110184,"r-value"),
+  U("h·m²·°C/kcal","h·m²·°C/kcal",1/1.163)]},
+ {k:"kval", g:"Nhiệt & HVAC", n:"Hệ số dẫn nhiệt λ", u:[
+  U("W/(m·K)","oát/m·K",1,"w/mk lambda"), U("mW/(m·K)","mili oát/m·K",1e-3),
+  U("kcal/(h·m·°C)","kcal/h·m·°C",1.163),
+  U("BTU/(h·ft·°F)","BTU/h·ft·°F",1.730734666),
+  U("BTU·in/(h·ft²·°F)","BTU·in/h·ft²·°F (k Mỹ)",0.144227889,"k-value")]},
+ {k:"cp", g:"Nhiệt & HVAC", n:"Nhiệt dung riêng", u:[
+  U("J/(kg·K)","jun/kg·K",1,"j/kgk"), U("kJ/(kg·K)","kilô jun/kg·K",1e3,"kj/kgk"),
+  U("kcal/(kg·°C)","kcal/kg·°C",4186.8), U("BTU/(lb·°F)","BTU/lb·°F",4186.8,"btu/lbf")]},
+ {k:"enth", g:"Nhiệt & HVAC", n:"Enthalpy riêng, nhiệt ẩn", u:[
+  U("J/kg","jun/kg",1), U("kJ/kg","kilô jun/kg",1e3,"kj/kg"), U("kcal/kg","kcal/kg",4186.8),
+  U("BTU/lb","BTU/pound",2326,"btu/lb"), U("kWh/kg","kWh/kg",3.6e6)]},
+ {k:"hum", g:"Nhiệt & HVAC", n:"Dung ẩm (tỷ số ẩm)", u:[
+  U("kg/kg","kg ẩm/kg khô",1,"kg/kgda"), U("g/kg","g ẩm/kg khô",1e-3,"g/kgda"),
+  U("gr/lb","grain/pound khô",1/7000,"grains"), U("lb/lb","pound/pound",1)]},
+ {k:"visc", g:"Nhiệt & HVAC", n:"Độ nhớt động lực μ", u:[
+  U("Pa·s","pascal giây",1,"pas"), U("mPa·s","mili pascal giây",1e-3,"mpas"),
+  U("cP","centipoise",1e-3,"cp"), U("P","poise",0.1), U("lb/(ft·s)","pound/foot·giây",1.488163943570),
+  U("lb/(ft·h)","pound/foot·giờ",1.488163943570/3600)]},
+ {k:"kvisc", g:"Nhiệt & HVAC", n:"Độ nhớt động học ν", u:[
+  U("m²/s","m²/giây",1), U("mm²/s","mm²/giây",1e-6), U("cSt","centistokes",1e-6,"cst"),
+  U("St","stokes",1e-4), U("ft²/s","ft²/giây",0.09290304), U("ft²/h","ft²/giờ",0.09290304/3600)]},
+ // ---- Điện & chiếu sáng
+ {k:"volt", g:"Điện & chiếu sáng", n:"Điện áp", u:[U("µV","micrô vôn",1e-6,"uv"),U("mV","mili vôn",1e-3),U("V","vôn",1,"volt"),U("kV","kilô vôn",1e3),U("MV","mega vôn",1e6)]},
+ {k:"curr", g:"Điện & chiếu sáng", n:"Dòng điện", u:[U("µA","micrô ampe",1e-6,"ua"),U("mA","mili ampe",1e-3),U("A","ampe",1,"amp"),U("kA","kilô ampe",1e3)]},
+ {k:"res", g:"Điện & chiếu sáng", n:"Điện trở", u:[U("mΩ","mili ôm",1e-3,"mohm"),U("Ω","ôm",1,"ohm"),U("kΩ","kilô ôm",1e3,"kohm"),U("MΩ","mega ôm",1e6,"megohm")]},
+ {k:"cap", g:"Điện & chiếu sáng", n:"Điện dung", u:[U("pF","picô fara",1e-12),U("nF","nanô fara",1e-9),U("µF","micrô fara",1e-6,"uf mfd"),U("mF","mili fara",1e-3),U("F","fara",1)]},
+ {k:"charge", g:"Điện & chiếu sáng", n:"Điện tích, dung lượng pin", u:[U("C","culông",1),U("mAh","mili ampe giờ",3.6),U("Ah","ampe giờ",3600)]},
+ {k:"apow", g:"Điện & chiếu sáng", n:"Công suất biểu kiến, phản kháng", note:"VA và var có cùng hệ số quy đổi bậc; không đổi được sang W nếu không có cos φ.", u:[
+  U("VA","vôn ampe",1),U("kVA","kilô vôn ampe",1e3),U("MVA","mega vôn ampe",1e6),
+  U("var","var",1),U("kvar","kilô var",1e3),U("Mvar","mega var",1e6)]},
+ {k:"wire", g:"Điện & chiếu sáng", n:"Tiết diện dây dẫn", note:"AWG tính theo ASTM B258. AWG 0 = 1/0, −1 = 2/0, −2 = 3/0, −3 = 4/0.", u:[
+  U("mm²","milimét vuông",1,"mm2 sqmm"),
+  U("AWG","cỡ dây Mỹ",{
+    to:function(n){var d=0.127*Math.pow(92,(36-n)/39);return PI/4*d*d},
+    from:function(b){var d=Math.sqrt(4*b/PI);return 36-39*Math.log(d/0.127)/Math.log(92)}},"gauge"),
+  U("kcmil","nghìn circular mil (MCM)",0.506707479,"mcm"), U("cmil","circular mil",0.000506707479),
+  U("in²","inch vuông",645.16,"in2")]},
+ {k:"lux", g:"Điện & chiếu sáng", n:"Độ rọi", u:[U("lx","lux",1,"lux"),U("klx","kilô lux",1e3),U("fc","foot-candle",10.763910417,"footcandle")]},
+ // ---- Khác
+ {k:"conc", g:"Khác", n:"Nồng độ, tỷ lệ", u:[U("—","số thập phân",1,"fraction"),U("%","phần trăm",1e-2),U("‰","phần nghìn",1e-3),U("ppm","phần triệu",1e-6),U("ppb","phần tỷ",1e-9)]},
+ {k:"fuel", g:"Khác", n:"Tiêu hao nhiên liệu", u:[
+  U("L/100km","lít/100 km",{to:function(v){return 100/v},from:function(b){return 100/b}},"l100"),
+  U("km/L","kilômét/lít",1,"kml"),
+  U("mpg US","dặm/gallon Mỹ",1.609344/3.785411784,"mpg"),
+  U("mpg UK","dặm/gallon Anh",1.609344/4.54609)]},
+ {k:"data", g:"Khác", n:"Dữ liệu", u:[
+  U("bit","bit",0.125),U("B","byte",1),U("kB","kilôbyte",1e3),U("MB","megabyte",1e6),U("GB","gigabyte",1e9),U("TB","terabyte",1e12),
+  U("KiB","kibibyte",1024),U("MiB","mebibyte",1048576),U("GiB","gibibyte",1073741824),U("Mbps","megabit/giây (đổi ra MB/s)",0.125e6)]},
+ {k:"pipe", g:"Khác", n:"Cỡ ống DN ↔ inch (bảng tra)", type:"table"}
+];
+
+var PIPES = [
+ ["DN6","1/8","10.3"],["DN8","1/4","13.7"],["DN10","3/8","17.1"],["DN15","1/2","21.3"],["DN20","3/4","26.7"],
+ ["DN25","1","33.4"],["DN32","1-1/4","42.2"],["DN40","1-1/2","48.3"],["DN50","2","60.3"],
+ ["DN65","2-1/2","73.0"],["DN80","3","88.9"],["DN90","3-1/2","101.6"],["DN100","4","114.3"],["DN125","5","141.3"],
+ ["DN150","6","168.3"],["DN200","8","219.1"],["DN250","10","273.1"],["DN300","12","323.9"],
+ ["DN350","14","355.6"],["DN400","16","406.4"],["DN450","18","457.0"],["DN500","20","508.0"],
+ ["DN550","22","559.0"],["DN600","24","610.0"],["DN700","28","711.0"],["DN750","30","762.0"],["DN800","32","813.0"],
+ ["DN900","36","914.0"],["DN1000","40","1016.0"],["DN1200","48","1219.0"]
+];
+
+// ---------- state ----------
+var S = {cat:"press", from:"bar", to:"psi", val:"1", sig:6, dec:".", recent:[]};
+function load(){ try{ var s=JSON.parse(localStorage.getItem("unitconv.v1")||"null"); if(s) for(var k in s) S[k]=s[k]; }catch(e){} }
+function save(){ try{ localStorage.setItem("unitconv.v1", JSON.stringify(S)); }catch(e){} }
+
+var $ = function(id){ return document.getElementById(id); };
+function catBy(k){ for(var i=0;i<CATS.length;i++) if(CATS[i].k===k) return CATS[i]; return CATS[0]; }
+function unitBy(c,id){ for(var i=0;i<c.u.length;i++) if(c.u[i].id===id) return c.u[i]; return null; }
+function toBase(u,v){ return u.f!==null ? v*u.f : u.fn.to(v); }
+function fromBase(u,b){ return u.f!==null ? b/u.f : u.fn.from(b); }
+function norm(s){ return String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d")
+  .replace(/²/g,"2").replace(/³/g,"3").replace(/₂/g,"2").replace(/·/g,"").replace(/\s+/g," ").trim(); }
+
+// ---------- number format ----------
+var SUP = {"-":"⁻","0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹"};
+function group(i){ return i.replace(/\B(?=(\d{3})+(?!\d))/g,"\u202F"); }
+function fmt(x){
+  if(!isFinite(x)) return "—";
+  if(x===0) return "0";
+  var a=Math.abs(x), sig=+S.sig;
+  if(a>=1e12 || a<1e-6){
+    var p=x.toExponential(sig-1).split("e"), m=p[0];
+    if(m.indexOf(".")>=0) m=m.replace(/0+$/,"").replace(/\.$/,"");
+    var e=p[1].replace("+","").split("").map(function(ch){return SUP[ch]||ch;}).join("");
+    return m.replace(".",S.dec)+" × 10"+e;
+  }
+  var s=String(Number(x.toPrecision(sig)));
+  if(s.indexOf("e")>=0) return s;
+  var neg=s.charAt(0)==="-"; if(neg) s=s.slice(1);
+  var parts=s.split(".");
+  return (neg?"−":"")+group(parts[0])+(parts[1]?S.dec+parts[1]:"");
+}
+function plain(x){
+  if(!isFinite(x)) return "";
+  var s=String(Number(x.toPrecision(+S.sig)));
+  return S.dec===","? s.replace(".",",") : s;
+}
+function parse(str){
+  var s=String(str).trim().replace(/\s|\u202F/g,"").replace(/−/g,"-").replace(/×/g,"*").replace(/÷/g,"/");
+  if(s==="") return {v:NaN, empty:true};
+  s=s.replace(/,/g,".");
+  if(/^[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?$/i.test(s)) return {v:parseFloat(s)};
+  if(!/^[0-9+\-*/().eE^]+$/.test(s)) return {v:NaN};
+  s=s.replace(/\^/g,"**");
+  try{ var v=Function('"use strict";return ('+s+')')(); return {v:(typeof v==="number"?v:NaN)}; }catch(e){ return {v:NaN}; }
+}
+
+// ---------- render ----------
+function fillCats(){
+  var sel=$("cat"), groups={}, order=[];
+  CATS.forEach(function(c){ if(!groups[c.g]){groups[c.g]=[];order.push(c.g);} groups[c.g].push(c); });
+  sel.innerHTML="";
+  order.forEach(function(g){
+    var og=document.createElement("optgroup"); og.label=g;
+    groups[g].forEach(function(c){ var o=document.createElement("option"); o.value=c.k; o.textContent=c.n; og.appendChild(o); });
+    sel.appendChild(og);
+  });
+}
+function fillUnits(c){
+  ["from","to"].forEach(function(id){
+    var sel=$(id); sel.innerHTML="";
+    c.u.forEach(function(u){ var o=document.createElement("option"); o.value=u.id; o.textContent=u.id+"  ("+u.name+")"; sel.appendChild(o); });
+  });
+  if(!unitBy(c,S.from)) S.from=c.u[0].id;
+  if(!unitBy(c,S.to)) S.to=c.u[Math.min(1,c.u.length-1)].id;
+  $("from").value=S.from; $("to").value=S.to;
+}
+function renderChips(){
+  var box=$("chips"); box.innerHTML="";
+  S.recent.forEach(function(k){
+    var c=catBy(k), b=document.createElement("button");
+    b.type="button"; b.textContent=c.n; b.setAttribute("aria-pressed", String(k===S.cat));
+    b.onclick=function(){ setCat(k); };
+    box.appendChild(b);
+  });
+  box.hidden = S.recent.length===0;
+}
+function setCat(k, fromUnit){
+  S.cat=k;
+  S.recent=[k].concat(S.recent.filter(function(x){return x!==k;})).slice(0,8);
+  var c=catBy(k);
+  $("cat").value=k;
+  if(c.type==="table"){
+    $("conv").hidden=true; $("tblview").hidden=false; renderTable();
+  } else {
+    $("conv").hidden=false; $("tblview").hidden=true;
+    if(fromUnit){ if(fromUnit===S.to) S.to=S.from; S.from=fromUnit; }
+    fillUnits(c);
+    if(S.from===S.to && c.u.length>1){ S.to=c.u[c.u[0].id===S.from?1:0].id; $("to").value=S.to; }
+    $("note").textContent=c.note||"";
+    compute();
+  }
+  renderChips(); save();
+}
+function compute(){
+  var c=catBy(S.cat); if(c.type==="table") return;
+  var p=parse($("val").value), fu=unitBy(c,S.from), tu=unitBy(c,S.to);
+  var bad = !p.empty && !isFinite(p.v);
+  $("val").classList.toggle("bad", bad);
+  $("msg").textContent = bad ? "Không đọc được giá trị. Dùng số và các phép + − * / ( ) ^." : "";
+  var base = isFinite(p.v) ? toBase(fu,p.v) : NaN;
+  var r = isFinite(base) ? fromBase(tu,base) : NaN;
+  $("out").firstChild.textContent = fmt(r);
+  $("out").dataset.raw = isFinite(r) ? r : "";
+  $("allh").textContent = isFinite(p.v) ? (fmt(p.v)+" "+fu.id+" bằng") : "Tất cả đơn vị";
+  var list=$("list"); list.innerHTML="";
+  c.u.forEach(function(u){
+    var x = isFinite(base) ? fromBase(u,base) : NaN;
+    var row=document.createElement("div"); row.className="row"+(u.id===S.from?" from":"");
+    var v=document.createElement("button"); v.type="button"; v.className="v"; v.textContent=fmt(x);
+    v.setAttribute("aria-label","Sao chép "+fmt(x)+" "+u.id);
+    v.onclick=function(){ copy(plain(x)); };
+    var un=document.createElement("button"); un.type="button"; un.className="u"; un.textContent=u.id;
+    un.setAttribute("aria-label","Chọn "+u.name+" làm đơn vị đích");
+    un.onclick=function(){ if(u.id===S.from) return; S.to=u.id; $("to").value=u.id; compute(); window.scrollTo({top:0,behavior:"smooth"}); };
+    var n=document.createElement("div"); n.className="n"; n.textContent=u.name;
+    row.appendChild(v); row.appendChild(un); row.appendChild(n); list.appendChild(row);
+  });
+  S.val=$("val").value; save();
+}
+function renderTable(){
+  var q=norm($("tq").value).replace(/^dn/,""), t=$("tbl");
+  $("tblh").textContent="Cỡ ống thép DN ↔ NPS";
+  $("tblnote").textContent="OD theo ASME B36.10M / ISO 4200 (ống thép). Ống PVC, PPR, HDPE và ống đồng dùng OD khác — kiểm tra catalogue nhà sản xuất.";
+  var h="<thead><tr><th>DN (mm)</th><th>NPS (inch)</th><th>OD (mm)</th><th>OD (inch)</th></tr></thead><tbody>";
+  PIPES.forEach(function(p){
+    var dn=p[0].slice(2), hit = q!=="" && (dn===q || norm(p[1])===q || p[2].split(".")[0]===q.split(/[.,]/)[0]);
+    h+="<tr"+(hit?' class="hit"':"")+"><td>"+p[0]+"</td><td>"+p[1]+"\u2033</td><td>"+p[2].replace(".",S.dec)+"</td><td>"+fmtFix(parseFloat(p[2])/25.4,3)+"</td></tr>";
+  });
+  t.innerHTML=h+"</tbody>";
+  var first=t.querySelector("tr.hit"); if(first) first.scrollIntoView({block:"nearest"});
+}
+function fmtFix(x,d){ return x.toFixed(d).replace(".",S.dec); }
+
+// ---------- search ----------
+var INDEX=[];
+CATS.forEach(function(c){
+  if(c.type==="table"){ INDEX.push({c:c,u:null,key:norm(c.n+" dn nps inch ong pipe od"),label:c.n}); return; }
+  INDEX.push({c:c,u:null,key:norm(c.n),label:c.n});
+  c.u.forEach(function(u){ INDEX.push({c:c,u:u,key:norm(u.id+" "+u.name+" "+u.alias),sym:norm(u.id),label:u.id+" — "+u.name}); });
+});
+function search(q){
+  var box=$("res"); q=norm(q);
+  if(!q){ box.classList.remove("open"); box.innerHTML=""; return; }
+  var toks=q.split(" ");
+  var hits=INDEX.filter(function(e){ return toks.every(function(t){ return e.key.indexOf(t)>=0; }); });
+  hits.sort(function(a,b){
+    var sa=(a.sym===q?0:(a.sym&&a.sym.indexOf(q)===0?1:2)), sb=(b.sym===q?0:(b.sym&&b.sym.indexOf(q)===0?1:2));
+    return sa-sb;
+  });
+  hits=hits.slice(0,14);
+  box.innerHTML="";
+  if(!hits.length){ box.innerHTML='<div class="none">Không có đơn vị nào khớp. Thử ký hiệu ngắn hơn, vd "psi" hoặc "gio".</div>'; }
+  hits.forEach(function(e){
+    var b=document.createElement("button"); b.type="button"; b.setAttribute("role","option");
+    var l=document.createElement("span"); l.textContent=e.label;
+    var r=document.createElement("span"); r.className="c"; r.textContent=e.u?e.c.n:"Đại lượng";
+    b.appendChild(l); b.appendChild(r);
+    b.onclick=function(){ setCat(e.c.k, e.u?e.u.id:null); $("q").value=""; box.classList.remove("open"); if(e.c.type!=="table") $("val").focus(); };
+    box.appendChild(b);
+  });
+  box.classList.add("open");
+}
+
+// ---------- misc ----------
+var tt;
+function toast(m){ var t=$("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(tt); tt=setTimeout(function(){t.classList.remove("show");},1400); }
+function copy(txt){
+  if(!txt){ toast("Chưa có kết quả để sao chép"); return; }
+  var done=function(){ toast("Đã sao chép "+txt); };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(done, function(){ fallback(txt); done(); });
+  } else { fallback(txt); done(); }
+}
+function fallback(txt){ var a=document.createElement("textarea"); a.value=txt; document.body.appendChild(a); a.select(); try{document.execCommand("copy");}catch(e){} a.remove(); }
+
+// ---------- wire up ----------
+load();
+fillCats();
+$("sig").value=String(S.sig); $("dec").value=S.dec; $("val").value=S.val;
+$("cat").onchange=function(){ setCat(this.value); };
+$("from").onchange=function(){ S.from=this.value; compute(); };
+$("to").onchange=function(){ S.to=this.value; compute(); };
+$("val").oninput=compute;
+$("pm").onclick=function(){ var v=$("val").value.trim(); $("val").value = v.charAt(0)==="-" ? v.slice(1) : "-"+v; compute(); };
+$("swap").onclick=function(){
+  var raw=$("out").dataset.raw;
+  var t=S.from; S.from=S.to; S.to=t; $("from").value=S.from; $("to").value=S.to;
+  if(raw!=="") $("val").value=plain(+raw);
+  compute();
+};
+$("copy").onclick=function(){ var raw=$("out").dataset.raw; copy(raw===""?"":plain(+raw)); };
+$("sig").onchange=function(){ S.sig=+this.value; compute(); save(); };
+$("dec").onchange=function(){ S.dec=this.value; compute(); if(S.cat==="pipe") renderTable(); save(); };
+$("q").oninput=function(){ search(this.value); };
+$("q").onkeydown=function(e){
+  if(e.key==="Enter"){ var b=$("res").querySelector("button"); if(b){ e.preventDefault(); b.click(); } }
+  if(e.key==="Escape"){ this.value=""; search(""); }
+  if(e.key==="ArrowDown"){ var f=$("res").querySelector("button"); if(f){ e.preventDefault(); f.focus(); } }
+};
+$("res").onkeydown=function(e){
+  var a=document.activeElement;
+  if(e.key==="ArrowDown" && a.nextElementSibling){ e.preventDefault(); a.nextElementSibling.focus(); }
+  if(e.key==="ArrowUp"){ e.preventDefault(); (a.previousElementSibling||$("q")).focus(); }
+  if(e.key==="Escape"){ $("q").focus(); search(""); }
+};
+document.addEventListener("click",function(e){ if(!e.target.closest(".search")) $("res").classList.remove("open"); });
+$("tq").oninput=renderTable;
+setCat(S.cat);
+})();
+</script>
+<script>
+if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}
+</script>
+</body>
+</html>
