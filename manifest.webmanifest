@@ -1,1 +1,15 @@
-
+{
+  "name": "Đổi đơn vị kỹ thuật",
+  "short_name": "Đổi đơn vị",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#E6EBE7",
+  "theme_color": "#1F5F8B",
+  "lang": "vi",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
